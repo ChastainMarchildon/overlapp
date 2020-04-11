@@ -11,12 +11,7 @@ const SCOPES = ['https://www.googleapis.com/auth/calendar.readonly'];
 // time.
 const TOKEN_PATH = 'token.json';
 
-// Load client secrets from a local file.
-fs.readFile('credentials.json', (err, content) => {
-  if (err) return console.log('Error loading client secret file:', err);
-  // Authorize a client with credentials, then call the Google Calendar API.
-  authorize(JSON.parse(content), listEvents);
-});
+
 
 /**
  * Create an OAuth2 client with the given credentials, and then execute the
@@ -90,6 +85,7 @@ function listEvents(auth) {
         console.log(`${start} - ${event.summary}`);
         console.log(event);
       });
+      return events;
     } else {
       console.log('No upcoming events found.');
     }
@@ -102,10 +98,14 @@ const app = new App({
   signingSecret: process.env.SLACK_SIGNING_SECRET
 });
 // Listen for a slash command invocation
-app.event('app_home_opened', async ({ event, context }) => {
+app.event('app_home_opened', async ({ events, context }) => {
     try {
-    
-        listEvents(google.auth.OAuth2);
+        // Load client secrets from a local file.
+        fs.readFile('credentials.json', (err, content) => {
+        if (err) return console.log('Error loading client secret file:', err);
+        // Authorize a client with credentials, then call the Google Calendar API.
+        authorize(JSON.parse(content), listEvents);
+        });
       /* view.publish is the method that your app uses to push a view to the Home tab */
       const result = await app.client.views.publish({
   
@@ -143,7 +143,7 @@ app.event('app_home_opened', async ({ event, context }) => {
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": event.start.dateTime
+                  "text": eventList
                 }
               },
             {
